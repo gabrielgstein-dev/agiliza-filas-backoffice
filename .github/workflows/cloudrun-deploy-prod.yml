@@ -12,15 +12,15 @@ on:
         default: '1.0.0'
 
 env:
-  GCP_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID_PROD }}
-  GCP_REGION: ${{ vars.GCP_REGION_PROD }}
-  SERVICE_NAME: ${{ vars.FRONTEND_SERVICE_NAME_PROD }}
+  GCP_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID_BACKOFFICE_PROD }}
+  GCP_REGION: ${{ vars.GCP_REGION_BACKOFFICE_PROD }}
+  SERVICE_NAME: agiliza-backoffice-prod
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
     environment: production # Requer aprovação/permissão
-    
+
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
@@ -28,17 +28,17 @@ jobs:
     - name: Set default environment variables
       run: |
         echo "🔧 Configurando variáveis de ambiente:"
-        
+
         # Definir variáveis fixas
-        echo "GCP_PROJECT_ID=fila-digital-qa" >> $GITHUB_ENV
+        echo "GCP_PROJECT_ID=agiliza-prod" >> $GITHUB_ENV
         echo "GCP_REGION=us-central1" >> $GITHUB_ENV
-        echo "SERVICE_NAME=fila-frontend" >> $GITHUB_ENV
-        
+        echo "SERVICE_NAME=agiliza-backoffice" >> $GITHUB_ENV
+
         # Exportar para uso imediato
-        export GCP_PROJECT_ID="fila-digital-qa"
+        export GCP_PROJECT_ID="agiliza-prod"
         export GCP_REGION="us-central1"
-        export SERVICE_NAME="fila-frontend"
-        
+        export SERVICE_NAME="agiliza-backoffice"
+
         echo "✅ Variáveis definidas:"
         echo "GCP_PROJECT_ID: $GCP_PROJECT_ID"
         echo "GCP_REGION: $GCP_REGION"
@@ -51,7 +51,7 @@ jobs:
           # Extract version from tag
           TAG_NAME=${GITHUB_REF#refs/tags/}
           echo "Tag detectada: $TAG_NAME"
-          
+
           # Validar que NÃO contém -stage e segue formato X.Y.Z
           if [[ "$TAG_NAME" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
             echo "should_deploy=true" >> $GITHUB_OUTPUT
@@ -76,17 +76,17 @@ jobs:
       if: steps.version_check.outputs.should_deploy == 'true'
       uses: google-github-actions/setup-gcloud@v2
       with:
-        service_account_key: ${{ secrets.GCP_SA_KEY_PROD }}
-        project_id: fila-digital-qa
+        service_account_key: ${{ secrets.GCP_SA_KEY_BACKOFFICE_PROD }}
+        project_id: ${{ secrets.GCP_PROJECT_ID_BACKOFFICE_PROD }}
 
     - name: Check service account key
       run: |
         echo "🔍 Verificando chave da conta de serviço:"
-        
+
         # Verificar se a variável está definida
         if [ -n "$GOOGLE_APPLICATION_CREDENTIALS" ]; then
           echo "✅ GOOGLE_APPLICATION_CREDENTIALS está definida: $GOOGLE_APPLICATION_CREDENTIALS"
-          
+
           # Verificar se o arquivo existe
           if [ -f "$GOOGLE_APPLICATION_CREDENTIALS" ]; then
             echo "✅ Arquivo de credenciais existe"
@@ -98,7 +98,7 @@ jobs:
         else
           echo "❌ GOOGLE_APPLICATION_CREDENTIALS NÃO está definida"
         fi
-        
+
         echo ""
         echo "🔍 Verificando variáveis do gcloud:"
         echo "CLOUDSDK_PROJECT: $CLOUDSDK_PROJECT"
@@ -108,16 +108,16 @@ jobs:
       if: steps.version_check.outputs.should_deploy == 'true'
       run: |
         echo "🔍 Verificando variáveis após setup do gcloud:"
-        echo "GCP_PROJECT_ID: fila-digital-qa"
+        echo "GCP_PROJECT_ID: agiliza-prod"
         echo "GCP_REGION: us-central1"
-        echo "SERVICE_NAME: fila-frontend"
+        echo "SERVICE_NAME: agiliza-backoffice"
         echo "CLOUDSDK_PROJECT: $CLOUDSDK_PROJECT"
-        
+
         # Definir variáveis fixas
-        export GCP_PROJECT_ID="fila-digital-qa"
+        export GCP_PROJECT_ID="agiliza-prod"
         export GCP_REGION="us-central1"
-        export SERVICE_NAME="fila-frontend"
-        
+        export SERVICE_NAME="agiliza-backoffice"
+
         echo "✅ Variáveis finais definidas:"
         echo "GCP_PROJECT_ID: $GCP_PROJECT_ID"
         echo "GCP_REGION: $GCP_REGION"
@@ -158,7 +158,7 @@ jobs:
         gcloud config list
         gcloud auth configure-docker us-docker.pkg.dev --quiet
         echo "✅ Docker configurado para us-docker.pkg.dev"
-        
+
         # Verificar se o Docker está autenticado
         echo "🔍 Verificando autenticação do Docker..."
         docker login us-docker.pkg.dev
@@ -167,23 +167,23 @@ jobs:
       if: steps.version_check.outputs.should_deploy == 'true'
       run: |
         VERSION="${{ steps.version_check.outputs.version }}"
-        docker build -t us-docker.pkg.dev/$GCP_PROJECT_ID/fila-frontend/fila-frontend:$VERSION \
-                     -t us-docker.pkg.dev/$GCP_PROJECT_ID/fila-frontend/fila-frontend:$GITHUB_SHA \
-                     -t us-docker.pkg.dev/$GCP_PROJECT_ID/fila-frontend/fila-frontend:latest .
+        docker build -t us-docker.pkg.dev/$GCP_PROJECT_ID/agiliza-backoffice/agiliza-backoffice:$VERSION \
+                     -t us-docker.pkg.dev/$GCP_PROJECT_ID/agiliza-backoffice/agiliza-backoffice:$GITHUB_SHA \
+                     -t us-docker.pkg.dev/$GCP_PROJECT_ID/agiliza-backoffice/agiliza-backoffice:latest .
 
     - name: Push Docker image
       if: steps.version_check.outputs.should_deploy == 'true'
       run: |
         VERSION="${{ steps.version_check.outputs.version }}"
-        docker push us-docker.pkg.dev/$GCP_PROJECT_ID/fila-frontend/fila-frontend:$VERSION
-        docker push us-docker.pkg.dev/$GCP_PROJECT_ID/fila-frontend/fila-frontend:$GITHUB_SHA
-        docker push us-docker.pkg.dev/$GCP_PROJECT_ID/fila-frontend/fila-frontend:latest
+        docker push us-docker.pkg.dev/$GCP_PROJECT_ID/agiliza-backoffice/agiliza-backoffice:$VERSION
+        docker push us-docker.pkg.dev/$GCP_PROJECT_ID/agiliza-backoffice/agiliza-backoffice:$GITHUB_SHA
+        docker push us-docker.pkg.dev/$GCP_PROJECT_ID/agiliza-backoffice/agiliza-backoffice:latest
 
     - name: Deploy to Cloud Run
       if: steps.version_check.outputs.should_deploy == 'true'
       run: |
         gcloud run deploy $SERVICE_NAME \
-          --image us-docker.pkg.dev/$GCP_PROJECT_ID/fila-frontend/fila-frontend:$GITHUB_SHA \
+          --image us-docker.pkg.dev/$GCP_PROJECT_ID/agiliza-backoffice/agiliza-backoffice:$GITHUB_SHA \
           --region $GCP_REGION \
           --platform managed \
           --allow-unauthenticated \
@@ -192,7 +192,7 @@ jobs:
           --cpu 2 \
           --min-instances 1 \
           --max-instances 20 \
-          --set-env-vars NODE_ENV=production,ENVIRONMENT=production,NEXT_TELEMETRY_DISABLED=${{ vars.NEXT_TELEMETRY_DISABLED }},NEXT_PUBLIC_API_URL=${{ vars.NEXT_PUBLIC_API_URL_PROD }},NEXT_PUBLIC_WS_URL=${{ vars.NEXT_PUBLIC_WS_URL_PROD }},NEXT_PUBLIC_APP_NAME="${{ vars.NEXT_PUBLIC_APP_NAME_PROD }}"
+          --set-env-vars NODE_ENV=production,ENVIRONMENT=production,NEXT_TELEMETRY_DISABLED=1,NEXT_PUBLIC_API_URL=https://agiliza-api-nafwgg52oq-uc.a.run.app,NEXT_PUBLIC_WS_URL=wss://agiliza-api-nafwgg52oq-uc.a.run.app,NEXT_PUBLIC_APP_NAME="Agiliza Backoffice"
 
     - name: Get service URL
       if: steps.version_check.outputs.should_deploy == 'true'
