@@ -354,6 +354,7 @@ export default function QueueDetailsPage() {
             <TicketsTab
               tickets={tickets}
               queueId={queue.id}
+              tenantId={queue.tenantId}
               onTicketAdded={fetchQueueData}
             />
           )}

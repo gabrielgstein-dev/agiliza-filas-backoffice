@@ -173,6 +173,10 @@ class ApiClient {
     });
   }
 
+  async getAgents(tenantId: string): Promise<Agent[]> {
+    return this.request<Agent[]>(`/tenants/${tenantId}/agents`);
+  }
+
   async getTicket(ticketId: string): Promise<Ticket> {
     return this.request<Ticket>(`/tickets/${ticketId}`);
   }

@@ -1,26 +1,26 @@
 'use client'
 
-import React, { useState } from 'react'
-import { useRouter, usePathname } from 'next/navigation'
-import { signOut } from 'next-auth/react'
-import { 
-  Menu, 
-  X, 
-  Home, 
-  Users, 
-  BarChart3, 
-  Settings, 
-  LogOut, 
-  Moon, 
-  Sun,
-  Building2,
-  User,
-  Shield,
-  ChevronLeft,
-  ChevronRight
-} from 'lucide-react'
-import { useAuth } from '@/hooks/useAuth'
 import { useTheme } from '@/contexts/ThemeContext'
+import { useAuth } from '@/hooks/useAuth'
+import {
+  BarChart3,
+  Building2,
+  ChevronLeft,
+  ChevronRight,
+  Home,
+  LogOut,
+  Menu,
+  Moon,
+  Settings,
+  Shield,
+  Sun,
+  User,
+  Users,
+  X
+} from 'lucide-react'
+import { signOut } from 'next-auth/react'
+import { usePathname, useRouter } from 'next/navigation'
+import React, { useState } from 'react'
 
 interface SidebarProps {
   children: React.ReactNode
@@ -44,6 +44,12 @@ const menuItems = [
     label: 'Integração',
     href: '/backend-integration',
     color: 'text-purple-500'
+  },
+  {
+    icon: Settings,
+    label: 'Documentação',
+    href: '/docs',
+    color: 'text-green-500'
   },
   {
     icon: Settings,
@@ -92,7 +98,7 @@ export function Sidebar({ children }: SidebarProps) {
             </div>
           </div>
         )}
-        
+
         {/* Toggle button for desktop */}
         <button
           onClick={() => setIsCollapsed(!isCollapsed)}
@@ -128,7 +134,7 @@ export function Sidebar({ children }: SidebarProps) {
               <div className="flex items-center space-x-2">
                 <Shield className="w-3 h-3 text-slate-500 dark:text-slate-400" />
                 <p className="text-xs text-slate-500 dark:text-slate-400">
-                  {user.role === 'ADMIN' ? 'Admin' : 
+                  {user.role === 'ADMIN' ? 'Admin' :
                    user.role === 'MANAGER' ? 'Gerente' : 'Atendente'}
                 </p>
               </div>
@@ -142,7 +148,7 @@ export function Sidebar({ children }: SidebarProps) {
         {menuItems.map((item) => {
           const Icon = item.icon
           const active = isActive(item.href)
-          
+
           return (
             <button
               key={item.href}
@@ -150,8 +156,8 @@ export function Sidebar({ children }: SidebarProps) {
               disabled={item.disabled}
               className={`
                 w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl text-left transition-all duration-200
-                ${active 
-                  ? 'bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/30 dark:to-indigo-900/30 text-blue-700 dark:text-blue-300 shadow-sm' 
+                ${active
+                  ? 'bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/30 dark:to-indigo-900/30 text-blue-700 dark:text-blue-300 shadow-sm'
                   : item.disabled
                     ? 'text-slate-400 dark:text-slate-600 cursor-not-allowed'
                     : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white'

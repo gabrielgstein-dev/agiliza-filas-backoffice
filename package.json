@@ -9,7 +9,10 @@
   },
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "dev:docs": "./scripts/docs-dev.sh",
+    "build": "./scripts/build-docs.sh && next build",
+    "build:app": "next build",
+    "build:docs": "./scripts/build-docs.sh",
     "start": "next start",
     "lint": "next lint",
     "type-check": "tsc --noEmit",

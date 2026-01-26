@@ -220,6 +220,7 @@ export interface CreateTicketDto {
   clientPhone?: string;
   clientEmail?: string;
   priority?: number;
+  preferredAgentId?: string;
 }
 
 export interface LoginDto {

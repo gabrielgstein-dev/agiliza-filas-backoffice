@@ -1,8 +1,10 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { X, UserPlus } from 'lucide-react'
 import { LoadingSpinner } from '@/components/LoadingSpinner'
+import { apiClient } from '@/lib/api'
+import { Agent } from '@/types'
 
 interface AddTicketModalProps {
   isOpen: boolean
@@ -13,17 +15,32 @@ interface AddTicketModalProps {
     clientEmail?: string
     clientCpf: string
     priority?: number
+    preferredAgentId?: string
   }) => Promise<void>
+  tenantId: string
 }
 
-export function AddTicketModal({ isOpen, onClose, onSubmit }: AddTicketModalProps) {
+export function AddTicketModal({ isOpen, onClose, onSubmit, tenantId }: AddTicketModalProps) {
   const [clientName, setClientName] = useState('')
   const [clientPhone, setClientPhone] = useState('')
   const [clientEmail, setClientEmail] = useState('')
   const [clientCpf, setClientCpf] = useState('')
   const [priority, setPriority] = useState(1)
+  const [preferredAgentId, setPreferredAgentId] = useState<string>('')
+  const [agents, setAgents] = useState<Agent[]>([])
+  const [loadingAgents, setLoadingAgents] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    if (isOpen && tenantId) {
+      setLoadingAgents(true)
+      apiClient.getAgents(tenantId)
+        .then(setAgents)
+        .catch(() => setAgents([]))
+        .finally(() => setLoadingAgents(false))
+    }
+  }, [isOpen, tenantId])
 
   if (!isOpen) return null
 
@@ -87,6 +104,7 @@ export function AddTicketModal({ isOpen, onClose, onSubmit }: AddTicketModalProp
         clientEmail: clientEmail || undefined,
         clientCpf: clientCpf.replace(/\D/g, ''),
         priority: priority,
+        preferredAgentId: preferredAgentId || undefined,
       })
 
       setClientName('')
@@ -94,6 +112,7 @@ export function AddTicketModal({ isOpen, onClose, onSubmit }: AddTicketModalProp
       setClientEmail('')
       setClientCpf('')
       setPriority(1)
+      setPreferredAgentId('')
       onClose()
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Erro ao adicionar pessoa na fila')
@@ -188,6 +207,32 @@ export function AddTicketModal({ isOpen, onClose, onSubmit }: AddTicketModalProp
               className="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-slate-700 text-slate-900 dark:text-white"
               placeholder="Digite o e-mail"
             />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+              Atendente Específico (Opcional)
+            </label>
+            <select
+              value={preferredAgentId}
+              onChange={(e) => setPreferredAgentId(e.target.value)}
+              disabled={loadingAgents}
+              className="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-slate-700 text-slate-900 dark:text-white disabled:opacity-50"
+            >
+              <option value="">Qualquer atendente disponível (Fila Geral)</option>
+              {agents
+                .filter(agent => agent.isActive)
+                .map(agent => (
+                  <option key={agent.id} value={agent.id}>
+                    {agent.name} - {agent.status === 'AVAILABLE' ? '✓ Disponível' : '⏳ Ocupado'}
+                  </option>
+                ))}
+            </select>
+            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+              {preferredAgentId 
+                ? '⚠️ Cliente só será atendido pelo atendente escolhido' 
+                : '✓ Cliente será atendido pelo próximo atendente disponível'}
+            </p>
           </div>
 
           <div>

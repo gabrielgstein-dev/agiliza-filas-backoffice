@@ -9,10 +9,11 @@ import { apiClient } from '@/lib/api'
 interface TicketsTabProps {
   tickets: Ticket[]
   queueId: string
+  tenantId: string
   onTicketAdded: () => void
 }
 
-export function TicketsTab({ tickets, queueId, onTicketAdded }: TicketsTabProps) {
+export function TicketsTab({ tickets, queueId, tenantId, onTicketAdded }: TicketsTabProps) {
   const [isModalOpen, setIsModalOpen] = useState(false)
 
   const handleAddTicket = async (data: {
@@ -21,6 +22,7 @@ export function TicketsTab({ tickets, queueId, onTicketAdded }: TicketsTabProps)
     clientEmail?: string
     clientCpf: string
     priority?: number
+    preferredAgentId?: string
   }) => {
     await apiClient.createTicket(queueId, data)
     onTicketAdded()
@@ -56,6 +58,7 @@ export function TicketsTab({ tickets, queueId, onTicketAdded }: TicketsTabProps)
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         onSubmit={handleAddTicket}
+        tenantId={tenantId}
       />
     </div>
   )
