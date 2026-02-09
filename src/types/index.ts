@@ -138,6 +138,7 @@ export interface Agent {
   updatedAt: string;
   tenantId: string;
   tenant?: Tenant;
+  status?: string;
 }
 
 export interface Counter {

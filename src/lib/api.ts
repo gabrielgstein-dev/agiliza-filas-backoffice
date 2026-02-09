@@ -1,5 +1,6 @@
 import {
   Queue,
+  Agent,
   Ticket,
   CreateQueueDto,
   CreateTicketDto,
