@@ -1,9 +1,12 @@
 import {
   Queue,
   Agent,
+  Tenant,
   Ticket,
   CreateQueueDto,
   CreateTicketDto,
+  CreateTenantPayload,
+  TenantWithAdmin,
   QueueStats,
   AbandonmentStats,
   CleanupResponse,
@@ -215,6 +218,40 @@ class ApiClient {
   async cleanupQueue(tenantId: string, queueId: string): Promise<CleanupResponse> {
     return this.request<CleanupResponse>(`/tenants/${tenantId}/queues/${queueId}/cleanup`, {
       method: 'POST',
+    });
+  }
+
+  // ==================== SUPER ADMIN METHODS ====================
+
+  async superAdminLogin(credentials: { email: string; password: string }): Promise<AuthResponse> {
+    const response = await this.request<AuthResponse>('/auth/superadmin/login', {
+      method: 'POST',
+      body: JSON.stringify(credentials),
+    });
+    this.setToken(response.access_token);
+    return response;
+  }
+
+  async getTenants(): Promise<Tenant[]> {
+    return this.request<Tenant[]>('/tenants');
+  }
+
+  async createTenant(data: CreateTenantPayload): Promise<TenantWithAdmin> {
+    return this.request<TenantWithAdmin>('/tenants', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async toggleTenantActive(tenantId: string): Promise<Tenant> {
+    return this.request<Tenant>(`/tenants/${tenantId}/toggle-active`, {
+      method: 'PUT',
+    });
+  }
+
+  async deleteTenant(tenantId: string): Promise<void> {
+    return this.request<void>(`/tenants/${tenantId}`, {
+      method: 'DELETE',
     });
   }
 

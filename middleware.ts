@@ -22,6 +22,10 @@ export default withAuth(
           return true
         }
         
+        if (pathname.startsWith('/superadmin')) {
+          return true
+        }
+        
         if (pathname === '/login') {
           return true
         }

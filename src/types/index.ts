@@ -282,6 +282,28 @@ export interface NextAuthJWT {
   userType: string;
 }
 
+// ==================== SUPER ADMIN TYPES ====================
+
+export interface TenantWithAdmin extends Tenant {
+  adminUser?: {
+    id: string;
+    email: string;
+    name: string;
+    role: string;
+  };
+  temporaryPassword?: string;
+}
+
+export interface CreateTenantPayload {
+  name: string;
+  slug: string;
+  email?: string;
+  phone?: string;
+  adminEmail?: string;
+  adminName?: string;
+  adminPassword?: string;
+}
+
 // ==================== IGNITER TYPES ====================
 
 export interface IgniterTokenInfo {
