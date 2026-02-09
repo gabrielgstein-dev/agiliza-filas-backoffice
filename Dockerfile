@@ -4,6 +4,7 @@ FROM node:22-slim AS base
 # Instalar dependências do sistema
 RUN apt-get update && apt-get install -y --no-install-recommends \
     dumb-init \
+    git \
     && rm -rf /var/lib/apt/lists/*
 
 # Definir diretório de trabalho
@@ -19,25 +20,6 @@ RUN npm install -g pnpm
 FROM base AS deps
 RUN pnpm install --frozen-lockfile || pnpm install --no-frozen-lockfile
 
-# Stage para build da documentação
-FROM base AS docs-builder
-
-# Copiar script de build da documentação
-COPY scripts/build-docs.sh ./scripts/
-
-# Copiar documentação
-COPY docs-site ./docs-site
-
-# Instalar dependências da documentação
-WORKDIR /app/docs-site
-RUN npm install
-
-# Voltar para o diretório principal
-WORKDIR /app
-
-# Build da documentação
-RUN chmod +x scripts/build-docs.sh && ./scripts/build-docs.sh
-
 # Stage para build da aplicação
 FROM base AS builder
 
@@ -50,6 +32,8 @@ COPY . .
 # Definir variáveis de ambiente para build
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV NODE_ENV=production
+ARG NEXT_PUBLIC_API_URL
+ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
 
 # Build da aplicação Next.js
 RUN pnpm run build
@@ -80,9 +64,6 @@ RUN mkdir -p .next && chown nextjs:nodejs .next
 
 # Copiar arquivos públicos
 COPY --from=builder /app/public ./public
-
-# Copiar documentação buildada
-COPY --from=docs-builder /app/public/docs ./public/docs
 
 # Copiar build output do Next.js
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./

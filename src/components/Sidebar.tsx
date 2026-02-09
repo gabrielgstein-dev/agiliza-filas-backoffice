@@ -47,12 +47,6 @@ const menuItems = [
   },
   {
     icon: Settings,
-    label: 'Documentação',
-    href: '/docs',
-    color: 'text-green-500'
-  },
-  {
-    icon: Settings,
     label: 'Configurações',
     href: '/configuracoes',
     color: 'text-orange-500',
