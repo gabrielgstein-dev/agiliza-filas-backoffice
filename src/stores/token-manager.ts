@@ -145,33 +145,15 @@ export const useTokenManagerStore = createWithEqualityFn<TokenManagerStore>()(
       }
     },
 
-    startPeriodicCheck: (session, sessionStatus) => {
-      if (true) return;
-      const { intervalId } = get();
-      
-      // Limpar intervalo anterior se existir
-      if (intervalId) {
-        clearInterval(intervalId);
-      }
-
-      if (sessionStatus === 'authenticated') {
-        // Verificar imediatamente
-        get().checkTokenStatus(session as NextAuthSession | null, sessionStatus);
-
-        // Verificar a cada minuto
-        const newIntervalId = setInterval(() => {
-          get().checkTokenStatus(session as NextAuthSession | null, sessionStatus);
-        }, 60000);
-
-        set({ intervalId: newIntervalId });
-      }
+    startPeriodicCheck: () => {
+      // Funcionalidade desabilitada - não há necessidade de verificação periódica
     },
 
     stopPeriodicCheck: () => {
       const { intervalId, autoRefreshTimer } = get();
       
       if (intervalId) {
-        clearInterval(intervalId);
+        clearInterval(intervalId as ReturnType<typeof setInterval>);
         set({ intervalId: null });
       }
 

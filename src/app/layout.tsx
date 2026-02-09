@@ -3,7 +3,6 @@ import localFont from "next/font/local";
 import "./globals.css";
 import { Providers } from "../components/Providers";
 import { AppLayout } from "../components/AppLayout";
-import { IgniterDevControls } from "../components/IgniterDevControls";
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -35,7 +34,6 @@ export default function RootLayout({
           <AppLayout>
             {children}
           </AppLayout>
-          <IgniterDevControls />
         </Providers>
       </body>
     </html>

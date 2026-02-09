@@ -17,8 +17,10 @@ export function AppLayout({ children }: AppLayoutProps) {
 
   // Páginas que não precisam de autenticação
   const publicPages = useMemo(() => ['/login', '/'], [])
+  const isSuperAdmin = pathname.startsWith('/superadmin')
 
   useEffect(() => {
+    if (isSuperAdmin) return
     if (status === 'loading') return
 
     if (status === 'unauthenticated' && !publicPages.includes(pathname)) {
@@ -30,9 +32,12 @@ export function AppLayout({ children }: AppLayoutProps) {
       router.push('/dashboard')
       return
     }
-  }, [status, pathname, router, publicPages])
+  }, [status, pathname, router, publicPages, isSuperAdmin])
 
-  // Mostrar loading durante verificação de autenticação
+  if (isSuperAdmin) {
+    return <>{children}</>
+  }
+
   if (status === 'loading') {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-slate-900 dark:via-slate-800 dark:to-indigo-900 flex items-center justify-center">
@@ -41,12 +46,10 @@ export function AppLayout({ children }: AppLayoutProps) {
     )
   }
 
-  // Se não está autenticado e está em página pública, mostrar sem sidebar
   if (status === 'unauthenticated' && publicPages.includes(pathname)) {
     return <>{children}</>
   }
 
-  // Se está autenticado, mostrar com sidebar
   if (status === 'authenticated') {
     return (
       <Sidebar>
@@ -55,6 +58,5 @@ export function AppLayout({ children }: AppLayoutProps) {
     )
   }
 
-  // Fallback
   return <>{children}</>
 }

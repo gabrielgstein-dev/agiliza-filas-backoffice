@@ -138,6 +138,7 @@ export interface Agent {
   updatedAt: string;
   tenantId: string;
   tenant?: Tenant;
+  status?: string;
 }
 
 export interface Counter {
@@ -220,6 +221,7 @@ export interface CreateTicketDto {
   clientPhone?: string;
   clientEmail?: string;
   priority?: number;
+  preferredAgentId?: string;
 }
 
 export interface LoginDto {
@@ -236,6 +238,14 @@ export interface ApiResponse<T = unknown> {
   data: T;
   message?: string;
   success: boolean;
+}
+
+export interface PublicTicketStatus {
+  status: TicketStatus;
+  queueName: string;
+  myCallingToken: string;
+  position: number | null;
+  estimatedWaitTime: number | null;
 }
 
 export interface NextAuthUser {
@@ -270,6 +280,28 @@ export interface NextAuthJWT {
   tenant: Tenant;
   accessToken: string;
   userType: string;
+}
+
+// ==================== SUPER ADMIN TYPES ====================
+
+export interface TenantWithAdmin extends Tenant {
+  adminUser?: {
+    id: string;
+    email: string;
+    name: string;
+    role: string;
+  };
+  temporaryPassword?: string;
+}
+
+export interface CreateTenantPayload {
+  name: string;
+  slug: string;
+  email?: string;
+  phone?: string;
+  adminEmail?: string;
+  adminName?: string;
+  adminPassword?: string;
 }
 
 // ==================== IGNITER TYPES ====================

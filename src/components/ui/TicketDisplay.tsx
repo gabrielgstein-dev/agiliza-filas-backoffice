@@ -8,7 +8,8 @@ import {
   CheckCircle2,
   Play,
   XCircle,
-  Hash
+  Hash,
+  type LucideIcon
 } from 'lucide-react'
 import { Ticket, TicketStatus, ServiceType } from '@/types'
 import { Tag } from './Tag'
@@ -20,22 +21,21 @@ interface TicketDisplayProps {
 
 export function TicketDisplay({ ticket, showQueueInfo = false }: TicketDisplayProps) {
   const getPasswordType = (token: string) => {
-    // Remove números do final para detectar o prefixo
     const prefix = token.replace(/\d+$/, '')
     
-    const types = {
+    const types: Record<string, { label: string; color: 'blue' | 'green' | 'amber' | 'red' | 'purple' | 'gray'; serviceType: ServiceType }> = {
       'B': { label: 'Balcão', color: 'gray', serviceType: ServiceType.BALCAO },
-      'BP': { label: 'Balcão Prioritário', color: 'orange', serviceType: ServiceType.BALCAO },
+      'BP': { label: 'Balcão Prioritário', color: 'amber', serviceType: ServiceType.BALCAO },
       'C': { label: 'Consulta', color: 'blue', serviceType: ServiceType.CONSULTA },
       'CP': { label: 'Consulta Prioritária', color: 'blue', serviceType: ServiceType.CONSULTA },
       'E': { label: 'Exames', color: 'green', serviceType: ServiceType.EXAMES },
       'EP': { label: 'Exames Prioritários', color: 'green', serviceType: ServiceType.EXAMES },
-      'T': { label: 'Triagem', color: 'orange', serviceType: ServiceType.TRIAGEM },
-      'TP': { label: 'Triagem Prioritária', color: 'orange', serviceType: ServiceType.TRIAGEM },
-      'X': { label: 'Caixa', color: 'yellow', serviceType: ServiceType.CAIXA },
-      'XP': { label: 'Caixa Prioritário', color: 'yellow', serviceType: ServiceType.CAIXA },
-      'P': { label: 'Pediatria', color: 'pink', serviceType: ServiceType.PEDIATRIA },
-      'PP': { label: 'Pediatria Prioritária', color: 'pink', serviceType: ServiceType.PEDIATRIA },
+      'T': { label: 'Triagem', color: 'amber', serviceType: ServiceType.TRIAGEM },
+      'TP': { label: 'Triagem Prioritária', color: 'amber', serviceType: ServiceType.TRIAGEM },
+      'X': { label: 'Caixa', color: 'amber', serviceType: ServiceType.CAIXA },
+      'XP': { label: 'Caixa Prioritário', color: 'amber', serviceType: ServiceType.CAIXA },
+      'P': { label: 'Pediatria', color: 'purple', serviceType: ServiceType.PEDIATRIA },
+      'PP': { label: 'Pediatria Prioritária', color: 'purple', serviceType: ServiceType.PEDIATRIA },
       'U': { label: 'Urgência', color: 'red', serviceType: ServiceType.URGENCIA },
       'G': { label: 'Geral', color: 'gray', serviceType: ServiceType.GENERAL },
       'GP': { label: 'Geral Prioritário', color: 'gray', serviceType: ServiceType.GENERAL },
@@ -44,12 +44,12 @@ export function TicketDisplay({ ticket, showQueueInfo = false }: TicketDisplayPr
     return types[prefix] || { label: 'Geral', color: 'gray', serviceType: ServiceType.GENERAL }
   }
 
-  const getStatusInfo = (status: TicketStatus) => {
+  const getStatusInfo = (status: TicketStatus): { label: string; color: 'blue' | 'green' | 'amber' | 'red' | 'purple' | 'gray'; icon: LucideIcon } => {
     switch (status) {
       case TicketStatus.WAITING:
         return { label: 'Aguardando', color: 'blue', icon: Clock }
       case TicketStatus.CALLED:
-        return { label: 'Chamado', color: 'orange', icon: AlertCircle }
+        return { label: 'Chamado', color: 'amber', icon: AlertCircle }
       case TicketStatus.IN_SERVICE:
         return { label: 'Em Atendimento', color: 'green', icon: Play }
       case TicketStatus.COMPLETED:
@@ -90,10 +90,9 @@ export function TicketDisplay({ ticket, showQueueInfo = false }: TicketDisplayPr
           <div className={`w-12 h-12 bg-gradient-to-br ${
             passwordType.color === 'blue' ? 'from-blue-500 to-blue-600' :
             passwordType.color === 'green' ? 'from-green-500 to-green-600' :
-            passwordType.color === 'orange' ? 'from-orange-500 to-orange-600' :
+            passwordType.color === 'amber' ? 'from-amber-500 to-amber-600' :
             passwordType.color === 'red' ? 'from-red-500 to-red-600' :
-            passwordType.color === 'yellow' ? 'from-yellow-500 to-yellow-600' :
-            passwordType.color === 'pink' ? 'from-pink-500 to-pink-600' :
+            passwordType.color === 'purple' ? 'from-purple-500 to-purple-600' :
             'from-gray-500 to-gray-600'
           } rounded-xl flex items-center justify-center shadow-lg`}>
             <Hash className="w-6 h-6 text-white" />
@@ -103,12 +102,12 @@ export function TicketDisplay({ ticket, showQueueInfo = false }: TicketDisplayPr
               <span className="text-2xl font-bold text-slate-900 dark:text-white">
                 {ticket.myCallingToken}
               </span>
-              <Tag variant={passwordType.color as 'blue' | 'green' | 'orange' | 'red' | 'yellow' | 'pink' | 'gray'}>
+              <Tag variant={passwordType.color}>
                 {passwordType.label}
               </Tag>
             </div>
             <div className="flex items-center space-x-2">
-              <Tag variant={statusInfo.color as 'blue' | 'green' | 'orange' | 'red' | 'gray'}>
+              <Tag variant={statusInfo.color}>
                 <statusInfo.icon className="w-3 h-3 mr-1" />
                 {statusInfo.label}
               </Tag>

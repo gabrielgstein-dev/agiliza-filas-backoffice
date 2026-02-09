@@ -8,7 +8,6 @@ import {
   Bell, 
   X, 
   AlertTriangle, 
-  CheckCircle, 
   Info, 
   Zap, 
   Users,
@@ -231,8 +230,15 @@ export function RealtimeNotifications({ className = '' }: RealtimeNotificationsP
 }
 
 // Hook para notificações toast (opcional)
+interface ToastNotification {
+  id: string
+  message: string
+  type: string
+  timestamp: string
+}
+
 export function useRealtimeToast() {
-  const [toastNotifications, setToastNotifications] = useState<any[]>([]);
+  const [toastNotifications, setToastNotifications] = useState<ToastNotification[]>([]);
 
   const dismissToast = (id: string) => {
     setToastNotifications(prev => prev.filter(n => n.id !== id));

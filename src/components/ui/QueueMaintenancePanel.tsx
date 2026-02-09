@@ -1,12 +1,11 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 import { 
   Trash2, 
   BarChart3, 
   AlertTriangle, 
   CheckCircle2,
   RefreshCw,
-  TrendingUp,
-  TrendingDown
+  TrendingUp
 } from 'lucide-react'
 import { apiClient } from '@/lib/api'
 import { AbandonmentStats, CleanupResponse } from '@/types'
@@ -26,7 +25,7 @@ export function QueueMaintenancePanel({ queueId, tenantId, onStatsUpdate }: Queu
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
 
-  const fetchAbandonmentStats = async () => {
+  const fetchAbandonmentStats = useCallback(async () => {
     try {
       setLoading(true)
       setError(null)
@@ -38,7 +37,7 @@ export function QueueMaintenancePanel({ queueId, tenantId, onStatsUpdate }: Queu
     } finally {
       setLoading(false)
     }
-  }
+  }, [tenantId, queueId])
 
   const handleManualCleanup = async () => {
     if (!confirm('Deseja limpar tickets abandonados desta fila? Esta ação não pode ser desfeita.')) {
@@ -60,9 +59,10 @@ export function QueueMaintenancePanel({ queueId, tenantId, onStatsUpdate }: Queu
       if (onStatsUpdate) {
         onStatsUpdate()
       }
-    } catch (err: any) {
+    } catch (err) {
       console.error('Erro na limpeza:', err)
-      setError(`❌ Erro na limpeza: ${err.message || 'Erro desconhecido'}`)
+      const errorMessage = err instanceof Error ? err.message : 'Erro desconhecido'
+      setError(`❌ Erro na limpeza: ${errorMessage}`)
     } finally {
       setCleanupLoading(false)
     }
@@ -70,11 +70,11 @@ export function QueueMaintenancePanel({ queueId, tenantId, onStatsUpdate }: Queu
 
   useEffect(() => {
     fetchAbandonmentStats()
-  }, [queueId, tenantId])
+  }, [queueId, tenantId, fetchAbandonmentStats])
 
-  const getAbandonmentRateColor = (rate: number) => {
+  const getAbandonmentRateColor = (rate: number): 'green' | 'amber' | 'red' => {
     if (rate <= 10) return 'green'
-    if (rate <= 20) return 'yellow'
+    if (rate <= 20) return 'amber'
     return 'red'
   }
 
@@ -167,7 +167,7 @@ export function QueueMaintenancePanel({ queueId, tenantId, onStatsUpdate }: Queu
                     Taxa de Abandono
                   </span>
                   <div className="flex items-center space-x-2">
-                    <Tag variant={getAbandonmentRateColor(stats.abandonmentRate) as 'green' | 'yellow' | 'red'}>
+                    <Tag variant={getAbandonmentRateColor(stats.abandonmentRate)}>
                       {stats.abandonmentRate}%
                     </Tag>
                     {React.createElement(getAbandonmentRateIcon(stats.abandonmentRate), {

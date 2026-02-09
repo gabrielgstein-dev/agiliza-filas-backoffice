@@ -1,10 +1,11 @@
-# Dockerfile para produção - Next.js Frontend
+# Dockerfile combinado para produção - Next.js Frontend + Docusaurus Docs
 FROM node:22-slim AS base
 
 # Instalar dependências do sistema
 RUN apt-get update && apt-get install -y --no-install-recommends \
     dumb-init \
-    git \
+    curl \
+    nginx \
     && rm -rf /var/lib/apt/lists/*
 
 # Definir diretório de trabalho
@@ -16,35 +17,49 @@ COPY package.json pnpm-lock.yaml ./
 # Instalar pnpm globalmente
 RUN npm install -g pnpm
 
-# Stage para instalar dependências
+# Stage para instalar dependências do backoffice
 FROM base AS deps
 RUN pnpm install --frozen-lockfile || pnpm install --no-frozen-lockfile
 
-# Stage para build da aplicação
-FROM base AS builder
+# Stage para build do backoffice
+FROM base AS backoffice-builder
 
 # Copiar dependências instaladas
 COPY --from=deps /app/node_modules ./node_modules
 
-# Copiar código fonte
+# Copiar código fonte do backoffice
 COPY . .
 
 # Definir variáveis de ambiente para build
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV NODE_ENV=production
-ARG NEXT_PUBLIC_API_URL
-ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
 
 # Build da aplicação Next.js
 RUN pnpm run build
 
-# Stage final - runtime
+# Stage para build da documentação Docusaurus
+FROM base AS docs-builder
+
+# Copiar documentação
+COPY ../fila-api/docs-site ./docs-site
+
+# Entrar no diretório da documentação
+WORKDIR /app/docs-site
+
+# Instalar dependências da documentação
+RUN npm install
+
+# Build da documentação
+RUN npm run build
+
+# Stage final - runtime combinado
 FROM node:22-slim AS runtime
 
 # Instalar dependências do sistema
 RUN apt-get update && apt-get install -y --no-install-recommends \
     dumb-init \
     curl \
+    nginx \
     && rm -rf /var/lib/apt/lists/*
 
 # Criar usuário não-root
@@ -61,13 +76,24 @@ ENV PORT=8080
 
 # Criar diretórios necessários
 RUN mkdir -p .next && chown nextjs:nodejs .next
+RUN mkdir -p /var/www/html/docs && chown nextjs:nodejs /var/www/html/docs
 
-# Copiar arquivos públicos
-COPY --from=builder /app/public ./public
+# Copiar arquivos públicos do backoffice
+COPY --from=backoffice-builder /app/public ./public
 
 # Copiar build output do Next.js
-COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
-COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
+COPY --from=backoffice-builder --chown=nextjs:nodejs /app/.next/standalone ./
+COPY --from=backoffice-builder --chown=nextjs:nodejs /app/.next/static ./.next/static
+
+# Copiar build da documentação
+COPY --from=docs-builder --chown=nextjs:nodejs /app/docs-site/build /var/www/html/docs
+
+# Configurar nginx para servir a documentação
+COPY nginx-docs.conf /etc/nginx/sites-available/docs
+
+# Habilitar site do nginx
+RUN ln -s /etc/nginx/sites-available/docs /etc/nginx/sites-enabled/ && \
+    rm -f /etc/nginx/sites-enabled/default
 
 # Expor porta (Cloud Run usa 8080 por padrão)
 EXPOSE 8080
@@ -79,6 +105,10 @@ USER nextjs
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
   CMD curl --fail http://localhost:8080/ || exit 1
 
-# Comando para iniciar a aplicação
+# Script de inicialização para rodar ambos os serviços
+COPY start-services.sh /app/start-services.sh
+RUN chmod +x /app/start-services.sh
+
+# Comando para iniciar ambos os serviços
 ENTRYPOINT ["dumb-init", "--"]
-CMD ["node", "server.js"]
+CMD ["/app/start-services.sh"]

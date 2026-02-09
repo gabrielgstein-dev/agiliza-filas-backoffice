@@ -23,13 +23,6 @@ interface IgniterNotification {
   read: boolean;
 }
 
-interface UserWithToken {
-  name?: string | null;
-  email?: string | null;
-  image?: string | null;
-  accessToken?: string;
-  token?: string;
-}
 
 const IgniterContext = createContext<IgniterContextType>({
   isConnected: false,
@@ -150,7 +143,7 @@ export function IgniterProvider({ children }: { children: React.ReactNode }) {
       console.error('❌ Erro ao conectar SSE principal:', error);
       setConnectionError('Erro ao estabelecer conexão');
     }
-  }, [session?.user, addNotification, notifySubscribers, status]);
+  }, [session?.user, addNotification, notifySubscribers]);
 
   // Conectar a uma fila específica
   const connectToQueue = useCallback((queueId: string) => {

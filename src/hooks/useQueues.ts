@@ -70,7 +70,7 @@ export function useQueues() {
     avgServiceTime: queues.length > 0 
       ? Math.round(queues.reduce((acc, q) => acc + q.avgServiceTime, 0) / queues.length)
       : 0,
-    totalCapacity: queues.reduce((acc, q) => acc + q.capacity, 0)
+    totalCapacity: queues.reduce((acc, q) => acc + (q.capacity || 0), 0)
   }
 
   return {

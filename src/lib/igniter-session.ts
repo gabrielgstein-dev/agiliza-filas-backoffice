@@ -20,8 +20,10 @@ export function useIgniterSession() {
 
   useEffect(() => {
     if (status === 'authenticated' && session?.user && sseEnabled) {
-      // Verificar se já existe conexão ativa
-      if (isConnecting || (mainEventSource && mainEventSource.readyState === EventSource.OPEN)) {
+      // Verificar se já existe conexão ativa antes de tentar conectar
+      const isAlreadyConnected = mainEventSource && mainEventSource.readyState === EventSource.OPEN;
+      
+      if (isConnecting || isAlreadyConnected) {
         return;
       }
 
@@ -30,7 +32,7 @@ export function useIgniterSession() {
       
       if (token) {
         console.log('🔐 Iniciando conexão SSE com Zustand (sem provider!)');
-        connectToMainSSE(token);
+        connectToMainSSE();
       } else {
         console.warn('⚠️ Token não disponível para conexão SSE');
       }
@@ -38,20 +40,16 @@ export function useIgniterSession() {
       console.log('🚪 Usuário deslogado, limpando conexões SSE');
       clearAllConnections();
     }
+  }, [status, session?.user, sseEnabled, clearAllConnections, connectToMainSSE, isConnecting, mainEventSource]);
 
-    return () => {
-      if (status === 'unauthenticated') {
-        disconnectFromMainSSE();
-      }
-    };
-  }, [status, session?.user, sseEnabled, connectToMainSSE, disconnectFromMainSSE, clearAllConnections, isConnecting, mainEventSource]);
-
-  // Cleanup ao desmontar
+  // Cleanup ao desmontar ou quando status mudar para unauthenticated
   useEffect(() => {
-    return () => {
-      clearAllConnections();
-    };
-  }, [clearAllConnections]);
+    if (status === 'unauthenticated') {
+      return () => {
+        disconnectFromMainSSE();
+      };
+    }
+  }, [status, disconnectFromMainSSE]);
 
   return {
     isAuthenticated: status === 'authenticated',

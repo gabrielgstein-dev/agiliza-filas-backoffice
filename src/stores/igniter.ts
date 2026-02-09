@@ -2,8 +2,7 @@ import { createWithEqualityFn } from 'zustand/traditional';
 import { subscribeWithSelector } from 'zustand/middleware';
 import type { 
   IgniterNotification, 
-  QueueConnection, 
-  IgniterEventData 
+  QueueConnection
 } from '@/types/igniter';
 import { 
   generateNotificationId,
@@ -33,7 +32,7 @@ interface IgniterState {
 interface IgniterActions {
   // Controle SSE
   setSseEnabled: (enabled: boolean) => void;
-  connectToMainSSE: (token: string) => void;
+  connectToMainSSE: () => void;
   disconnectFromMainSSE: () => void;
   
   // Notificações
@@ -47,7 +46,7 @@ interface IgniterActions {
   notifySubscribers: (eventType: string, data: unknown) => void;
   
   // Filas
-  connectToQueue: (queueId: string, token: string) => () => void;
+  connectToQueue: (queueId: string) => () => void;
   disconnectFromQueue: (queueId: string) => void;
   clearAllConnections: () => void;
 }
@@ -75,23 +74,17 @@ export const useIgniterStore = createWithEqualityFn<IgniterStore>()(
       }
     },
 
-    connectToMainSSE: (token) => {
+    connectToMainSSE: () => {
       const { isConnecting, mainEventSource } = get();
       
       if (isConnecting || (mainEventSource && mainEventSource.readyState === EventSource.OPEN)) {
         return;
       }
 
-      if (!token) {
-        logSSEEvent('error', 'token não disponível');
-        set({ connectionError: 'Token não disponível' });
-        return;
-      }
-
       set({ isConnecting: true, connectionError: null });
 
       try {
-        const eventSourceUrl = createSSEUrl('ticket-changes', token);
+        const eventSourceUrl = createSSEUrl('ticket-changes');
         const eventSource = new EventSource(eventSourceUrl);
 
         eventSource.onopen = () => {
@@ -226,8 +219,8 @@ export const useIgniterStore = createWithEqualityFn<IgniterStore>()(
     },
 
     // === FILAS ===
-    connectToQueue: (queueId, token) => {
-      if (!queueId || !token) {
+    connectToQueue: (queueId) => {
+      if (!queueId) {
         return () => {};
       }
 
@@ -247,7 +240,7 @@ export const useIgniterStore = createWithEqualityFn<IgniterStore>()(
 
       const createQueueConnection = (): EventSource | null => {
         try {
-          const eventSourceUrl = createSSEUrl(`queue/${queueId}/current-ticket`, token);
+          const eventSourceUrl = createSSEUrl(`queue/${queueId}/current-ticket`, queueId);
           const eventSource = new EventSource(eventSourceUrl);
 
           eventSource.onopen = () => {
@@ -311,7 +304,7 @@ export const useIgniterStore = createWithEqualityFn<IgniterStore>()(
           };
 
           return eventSource;
-        } catch (error) {
+        } catch {
           return null;
         }
       };
@@ -413,18 +406,6 @@ export const useIgniterNotifications = () => useIgniterStore(
     clearNotifications: state.clearNotifications,
     markAsRead: state.markNotificationAsRead,
     markAllAsRead: state.markAllAsRead
-  })
-);
-
-export const useIgniterControl = () => useIgniterStore(
-  (state) => ({
-    sseEnabled: state.sseEnabled,
-    setSseEnabled: state.setSseEnabled,
-    activeConnections: Array.from(state.queueConnections.values())
-      .filter(conn => conn.eventSource.readyState === EventSource.OPEN).length,
-    clearAllConnections: state.clearAllConnections,
-    connectToMainSSE: state.connectToMainSSE,
-    disconnectFromMainSSE: state.disconnectFromMainSSE
   })
 );
 

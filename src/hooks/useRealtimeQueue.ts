@@ -41,7 +41,6 @@ export function useRealtimeQueue(queueId: string): UseRealtimeQueueReturn {
   
   const [data, setData] = useState<RealtimeQueueData>({});
   const [lastUpdate, setLastUpdate] = useState<string | null>(null);
-  const [refreshTrigger, setRefreshTrigger] = useState(0);
 
   // Processar notificações de atualização da fila
   useEffect(() => {
@@ -50,29 +49,30 @@ export function useRealtimeQueue(queueId: string): UseRealtimeQueueReturn {
       const eventData = latestNotification.data;
 
       if (eventData) {
+        const data = eventData as Record<string, unknown>
         setData(prev => ({
           ...prev,
-          currentTicket: eventData.currentTicket || eventData.callingNumber,
-          lastUpdated: eventData.timestamp,
+          currentTicket: (data.currentTicket as string) || (data.callingNumber as string) || undefined,
+          lastUpdated: data.timestamp as string,
           // Atualizar outros campos baseados no evento
-          ...(eventData.queueName && { 
+          ...(data.queueName ? { 
             queue: { 
               ...prev.queue, 
-              name: eventData.queueName 
+              name: data.queueName as string
             } as Queue 
-          }),
-          ...(eventData.position && { waitingCount: eventData.position }),
-          ...(eventData.estimatedWait && { 
+          } : {}),
+          ...(data.position ? { waitingCount: data.position as number } : {}),
+          ...(data.estimatedWait ? { 
             // Converter tempo estimado de segundos para minutos se necessário
-            estimatedWait: typeof eventData.estimatedWait === 'number' 
-              ? Math.round(eventData.estimatedWait / 60) 
-              : eventData.estimatedWait 
-          }),
+            estimatedWait: typeof data.estimatedWait === 'number' 
+              ? Math.round(data.estimatedWait / 60) 
+              : data.estimatedWait 
+          } : {}),
         }));
 
-        setLastUpdate(eventData.timestamp || new Date().toISOString());
+        setLastUpdate((data.timestamp as string) || new Date().toISOString());
 
-        console.log(`🔄 Dados da fila ${queueId} atualizados via tempo real:`, eventData);
+        console.log(`🔄 Dados da fila ${queueId} atualizados via tempo real:`, data);
       }
     }
   }, [queueNotifications, queueId]);
@@ -80,49 +80,52 @@ export function useRealtimeQueue(queueId: string): UseRealtimeQueueReturn {
   // Subscrever a eventos específicos da fila
   useEffect(() => {
     const unsubscribeQueueUpdate = subscribe('queue-update', (eventData) => {
-      if (eventData.queueId === queueId) {
-        console.log(`📊 Atualização da fila ${queueId} recebida:`, eventData);
+      const data = eventData as Record<string, unknown>
+      if (data.queueId === queueId) {
+        console.log(`📊 Atualização da fila ${queueId} recebida:`, data);
         
         // Atualizar estado local com dados do evento
         setData(prev => ({
           ...prev,
-          currentTicket: eventData.currentTicket || eventData.callingNumber,
-          nextTickets: eventData.nextTickets || prev.nextTickets,
-          waitingCount: eventData.waitingCount || prev.waitingCount,
-          completedCount: eventData.completedCount || prev.completedCount,
-          lastUpdated: eventData.timestamp,
+          currentTicket: (data.currentTicket as string) || (data.callingNumber as string) || undefined,
+          nextTickets: (data.nextTickets as string[]) || prev.nextTickets,
+          waitingCount: (data.waitingCount as number) || prev.waitingCount,
+          completedCount: (data.completedCount as number) || prev.completedCount,
+          lastUpdated: data.timestamp as string,
         }));
 
-        setLastUpdate(eventData.timestamp || new Date().toISOString());
+        setLastUpdate((data.timestamp as string) || new Date().toISOString());
       }
     });
 
     const unsubscribeTicketCall = subscribe('ticket-called', (eventData) => {
-      if (eventData.queueId === queueId) {
-        console.log(`📢 Ticket chamado na fila ${queueId}:`, eventData);
+      const data = eventData as Record<string, unknown>
+      if (data.queueId === queueId) {
+        console.log(`📢 Ticket chamado na fila ${queueId}:`, data);
         
         setData(prev => ({
           ...prev,
-          currentTicket: eventData.ticketNumber || eventData.callingNumber,
-          lastUpdated: eventData.timestamp,
+          currentTicket: (data.ticketNumber as string) || (data.callingNumber as string) || undefined,
+          lastUpdated: data.timestamp as string,
         }));
 
-        setLastUpdate(eventData.timestamp || new Date().toISOString());
+        setLastUpdate((data.timestamp as string) || new Date().toISOString());
       }
     });
 
     const unsubscribeTicketComplete = subscribe('ticket-completed', (eventData) => {
-      if (eventData.queueId === queueId) {
-        console.log(`✅ Ticket completado na fila ${queueId}:`, eventData);
+      const data = eventData as Record<string, unknown>
+      if (data.queueId === queueId) {
+        console.log(`✅ Ticket completado na fila ${queueId}:`, data);
         
         setData(prev => ({
           ...prev,
           completedCount: (prev.completedCount || 0) + 1,
           waitingCount: Math.max((prev.waitingCount || 1) - 1, 0),
-          lastUpdated: eventData.timestamp,
+          lastUpdated: data.timestamp as string,
         }));
 
-        setLastUpdate(eventData.timestamp || new Date().toISOString());
+        setLastUpdate((data.timestamp as string) || new Date().toISOString());
       }
     });
 
@@ -135,7 +138,6 @@ export function useRealtimeQueue(queueId: string): UseRealtimeQueueReturn {
 
   // Função para forçar atualização
   const forceRefresh = useCallback(() => {
-    setRefreshTrigger(prev => prev + 1);
     console.log(`🔄 Forçando atualização da fila ${queueId}`);
   }, [queueId]);
 
@@ -166,41 +168,42 @@ export function useRealtimeTicketChanges() {
 
   useEffect(() => {
     const unsubscribeTicketChanged = subscribe('ticket-changed', (eventData) => {
-      console.log('🎫 Mudança de ticket detectada:', eventData);
+      const data = eventData as Record<string, unknown>
+      console.log('🎫 Mudança de ticket detectada:', data);
       
       setTicketChanges(prev => [{
         id: `ticket-change-${Date.now()}`,
-        userId: eventData.userId,
-        userType: eventData.userType,
-        message: eventData.message,
-        timestamp: eventData.timestamp,
-        requiresReauth: eventData.requiresReauth,
-        sessionId: eventData.sessionId,
-      }, ...prev].slice(0, 10)); // Manter apenas as 10 mais recentes
+        userId: data.userId,
+        userType: data.userType,
+        message: data.message,
+        timestamp: data.timestamp,
+        requiresReauth: data.requiresReauth,
+        sessionId: data.sessionId,
+      }, ...prev].slice(0, 10));
     });
 
     const unsubscribeSessionInvalidated = subscribe('session-invalidated', (eventData) => {
-      console.log('🚨 Sessão invalidada:', eventData);
+      const data = eventData as Record<string, unknown>
+      console.log('🚨 Sessão invalidada:', data);
       
-      // Aqui você pode implementar lógica para logout automático
-      if (eventData.requiresReauth) {
+      if (data.requiresReauth) {
         console.warn('⚠️ Reautenticação necessária devido à mudança de ticket');
-        // Implementar logout/redirect para login se necessário
       }
     });
 
     const unsubscribeSecurityAlert = subscribe('security-alert', (eventData) => {
-      console.log('🔐 Alerta de segurança:', eventData);
+      const data = eventData as Record<string, unknown>
+      console.log('🔐 Alerta de segurança:', data);
       
       setSecurityAlerts(prev => [{
         id: `security-${Date.now()}`,
-        type: eventData.type,
-        message: eventData.message,
-        timestamp: eventData.timestamp,
-        severity: eventData.severity || 'info',
-        userId: eventData.userId,
-        tenantId: eventData.tenantId,
-      }, ...prev].slice(0, 5)); // Manter apenas os 5 mais recentes
+        type: data.type,
+        message: data.message,
+        timestamp: data.timestamp,
+        severity: (data.severity as string) || 'info',
+        userId: data.userId,
+        tenantId: data.tenantId,
+      }, ...prev].slice(0, 5));
     });
 
     return () => {
@@ -253,15 +256,16 @@ export function useRealtimeQueuePosition(queueId: string, userId?: string) {
     if (!userId) return;
 
     const unsubscribePositionUpdate = subscribe('position-update', (eventData) => {
-      if (eventData.queueId === queueId && eventData.userId === userId) {
-        console.log(`📍 Posição atualizada na fila ${queueId} para usuário ${userId}:`, eventData);
+      const data = eventData as Record<string, unknown>
+      if (data.queueId === queueId && data.userId === userId) {
+        console.log(`📍 Posição atualizada na fila ${queueId} para usuário ${userId}:`, data);
         
         setPosition({
-          currentPosition: eventData.currentPosition,
-          estimatedWait: eventData.estimatedWait,
-          peopleAhead: eventData.peopleAhead,
-          ticketNumber: eventData.ticketNumber,
-          lastUpdated: eventData.timestamp,
+          currentPosition: data.currentPosition as number | null,
+          estimatedWait: data.estimatedWait as number | null,
+          peopleAhead: data.peopleAhead as number | null,
+          ticketNumber: data.ticketNumber as string | null,
+          lastUpdated: data.timestamp as string | null,
         });
       }
     });
@@ -295,16 +299,17 @@ export function useRealtimeQueueStats(queueId: string) {
 
   useEffect(() => {
     const unsubscribeStatsUpdate = subscribe('queue-stats-update', (eventData) => {
-      if (eventData.queueId === queueId) {
-        console.log(`📈 Estatísticas atualizadas da fila ${queueId}:`, eventData);
+      const data = eventData as Record<string, unknown>
+      if (data.queueId === queueId) {
+        console.log(`📈 Estatísticas atualizadas da fila ${queueId}:`, data);
         
         setStats({
-          averageWaitTime: eventData.averageWaitTime,
-          completionRate: eventData.completionRate,
-          abandonmentRate: eventData.abandonmentRate,
-          totalProcessedToday: eventData.totalProcessedToday,
-          activeTickets: eventData.activeTickets,
-          lastUpdated: eventData.timestamp,
+          averageWaitTime: data.averageWaitTime as number | null,
+          completionRate: data.completionRate as number | null,
+          abandonmentRate: data.abandonmentRate as number | null,
+          totalProcessedToday: data.totalProcessedToday as number | null,
+          activeTickets: data.activeTickets as number | null,
+          lastUpdated: data.timestamp as string | null,
         });
       }
     });

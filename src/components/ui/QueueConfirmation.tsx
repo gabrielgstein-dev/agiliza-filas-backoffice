@@ -14,7 +14,6 @@ import {
   FileText
 } from 'lucide-react'
 import { Queue, Ticket, ServiceType } from '@/types'
-import { Tag } from './Tag'
 
 interface QueueConfirmationProps {
   queue: Queue

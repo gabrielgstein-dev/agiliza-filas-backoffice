@@ -186,8 +186,6 @@ export default function QueueDetailsPage() {
 
       console.log('✅ Próxima senha chamada:', calledTicket)
 
-      await fetchQueueData()
-
     } catch (err) {
       console.error('❌ Erro ao chamar próxima senha:', err)
       setError('Erro ao chamar próxima senha. Verifique se há tickets na fila.')
@@ -356,6 +354,7 @@ export default function QueueDetailsPage() {
             <TicketsTab
               tickets={tickets}
               queueId={queue.id}
+              tenantId={queue.tenantId}
               onTicketAdded={fetchQueueData}
             />
           )}

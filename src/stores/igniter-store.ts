@@ -2,9 +2,7 @@ import { createWithEqualityFn } from 'zustand/traditional';
 import { subscribeWithSelector } from 'zustand/middleware';
 import type { 
   IgniterNotification, 
-  QueueConnection, 
-  IgniterEventData,
-  UserWithToken 
+  QueueConnection
 } from '@/types/igniter';
 import { 
   generateNotificationId,
@@ -31,13 +29,12 @@ interface IgniterStore {
   
   // Estados de controle
   isConnecting: boolean;
-  connectionTimeout: ReturnType<typeof setTimeout> | null;
   
   // Ações de conexão principal
   setConnected: (connected: boolean) => void;
   setConnectionError: (error: string | null) => void;
   setSseEnabled: (enabled: boolean) => void;
-  connectToMainSSE: (user: UserWithToken) => void;
+  connectToMainSSE: () => void;
   disconnectFromMainSSE: () => void;
   
   // Ações de notificações
@@ -52,7 +49,7 @@ interface IgniterStore {
   notifySubscribers: (eventType: string, data: unknown) => void;
   
   // Ações de filas
-  connectToQueue: (queueId: string, token: string) => () => void;
+  connectToQueue: (queueId: string) => () => void;
   disconnectFromQueue: (queueId: string) => void;
   clearAllConnections: () => void;
   
@@ -75,14 +72,13 @@ export const useIgniterStore = createWithEqualityFn<IgniterStore>()(
     sseEnabled: false,
     mainEventSource: null,
     isConnecting: false,
-    connectionTimeout: null,
 
     // === AÇÕES DE CONEXÃO PRINCIPAL ===
     setConnected: (connected) => set({ isConnected: connected }),
     setConnectionError: (error) => set({ connectionError: error }),
     setSseEnabled: (enabled) => set({ sseEnabled: enabled }),
 
-    connectToMainSSE: (user) => {
+    connectToMainSSE: () => {
       const { isConnecting, mainEventSource } = get();
       
       if (isConnecting || (mainEventSource && mainEventSource.readyState === EventSource.OPEN)) {
@@ -147,11 +143,7 @@ export const useIgniterStore = createWithEqualityFn<IgniterStore>()(
     },
 
     disconnectFromMainSSE: () => {
-      const { mainEventSource, connectionTimeout } = get();
-      
-      if (connectionTimeout) {
-        clearTimeout(connectionTimeout);
-      }
+      const { mainEventSource } = get();
 
       if (mainEventSource) {
         mainEventSource.close();
@@ -161,8 +153,7 @@ export const useIgniterStore = createWithEqualityFn<IgniterStore>()(
       set({ 
         mainEventSource: null, 
         isConnected: false, 
-        isConnecting: false,
-        connectionTimeout: null 
+        isConnecting: false
       });
     },
 
@@ -234,7 +225,7 @@ export const useIgniterStore = createWithEqualityFn<IgniterStore>()(
     },
 
     // === AÇÕES DE FILAS ===
-    connectToQueue: (queueId, token) => {
+    connectToQueue: (queueId) => {
       if (!queueId) {
         logSSEEvent('error', `parâmetros inválidos para fila ${queueId}`);
         return () => {};
@@ -379,9 +370,6 @@ export const useIgniterStore = createWithEqualityFn<IgniterStore>()(
         if (state.mainEventSource) {
           state.mainEventSource.close();
         }
-        if (state.connectionTimeout) {
-          clearTimeout(state.connectionTimeout);
-        }
 
         // Limpar conexões de fila
         state.queueConnections.forEach((connection) => {
@@ -491,41 +479,12 @@ export const useIgniterNotificationsByType = (type: string) => useIgniterStore(
 export const useIgniterQueue = (queueId: string) => useIgniterStore(
   (state) => ({ 
     ...state.getQueueConnectionStatus(queueId),
-    connectToQueue: (token: string) => state.connectToQueue(queueId, token),
+    connectToQueue: () => state.connectToQueue(queueId),
     disconnectFromQueue: () => state.disconnectFromQueue(queueId)
   }),
   (a, b) => a.isConnected === b.isConnected && a.isReconnecting === b.isReconnecting
 );
 
-// Hook para controle SSE - desenvolvimento
-export const useIgniterControl = () => useIgniterStore(
-  (state) => ({
-    sseEnabled: state.sseEnabled,
-    setSseEnabled: state.setSseEnabled,
-    activeConnections: state.getActiveConnectionsCount(),
-    clearAllConnections: state.clearAllConnections,
-    connectToMainSSE: state.connectToMainSSE,
-    disconnectFromMainSSE: state.disconnectFromMainSSE
-  }),
-  (a, b) => a.sseEnabled === b.sseEnabled && a.activeConnections === b.activeConnections
-);
-
-// Hook para estatísticas gerais
-export const useIgniterStats = () => useIgniterStore(
-  (state) => ({
-    totalNotifications: state.notifications.length,
-    unreadCount: state.getUnreadCount(),
-    activeConnections: state.getActiveConnectionsCount(),
-    isConnected: state.isConnected,
-    connectionError: state.connectionError
-  }),
-  (a, b) => 
-    a.totalNotifications === b.totalNotifications &&
-    a.unreadCount === b.unreadCount &&
-    a.activeConnections === b.activeConnections &&
-    a.isConnected === b.isConnected &&
-    a.connectionError === b.connectionError
-);
 
 // === HOOKS COMPOSTOS PARA CASOS DE USO ESPECÍFICOS ===
 

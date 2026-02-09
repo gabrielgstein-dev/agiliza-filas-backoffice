@@ -7,6 +7,7 @@ import { NextAuthUser, NextAuthSession, NextAuthJWT } from '@/types'
 export const authOptions: NextAuthOptions = {
   providers: [
     CredentialsProvider({
+      id: 'credentials',
       name: 'credentials',
       credentials: {
         email: { label: 'Email', type: 'email' },
@@ -14,24 +15,13 @@ export const authOptions: NextAuthOptions = {
       },
       async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) {
-          console.log('🔐 NextAuth: Credenciais ausentes')
           return null
         }
 
-        console.log('🔐 NextAuth: Tentativa de login para email:', credentials.email)
-        console.log('🔐 NextAuth: URL da API:', env.API_URL)
-
         try {
-          console.log('🔐 NextAuth: Chamando API de login...')
           const response = await apiClient.login({
             email: credentials.email,
             password: credentials.password
-          })
-
-          console.log('🔐 NextAuth: Login bem-sucedido:', {
-            userId: response.user.id,
-            userName: response.user.name,
-            userRole: response.user.role
           })
 
           return {
@@ -45,11 +35,41 @@ export const authOptions: NextAuthOptions = {
             userType: 'agent'
           }
         } catch (error) {
-          console.error('❌ NextAuth: Erro na autenticação:', error)
-          console.error('❌ NextAuth: Detalhes do erro:', {
-            message: error instanceof Error ? error.message : 'Erro desconhecido',
-            stack: error instanceof Error ? error.stack : undefined
+          console.error('NextAuth credentials error:', error instanceof Error ? error.message : error)
+          return null
+        }
+      }
+    }),
+    CredentialsProvider({
+      id: 'superadmin-credentials',
+      name: 'superadmin-credentials',
+      credentials: {
+        email: { label: 'Email', type: 'email' },
+        password: { label: 'Senha', type: 'password' }
+      },
+      async authorize(credentials) {
+        if (!credentials?.email || !credentials?.password) {
+          return null
+        }
+
+        try {
+          const response = await apiClient.superAdminLogin({
+            email: credentials.email,
+            password: credentials.password
           })
+
+          return {
+            id: response.user.id,
+            email: response.user.email,
+            name: response.user.name,
+            role: 'SUPERADMIN',
+            tenantId: '',
+            tenant: undefined,
+            accessToken: response.access_token,
+            userType: 'superadmin'
+          }
+        } catch (error) {
+          console.error('NextAuth superadmin error:', error instanceof Error ? error.message : error)
           return null
         }
       }
@@ -93,7 +113,7 @@ export const authOptions: NextAuthOptions = {
   },
   session: {
     strategy: 'jwt',
-    maxAge: 24 * 60 * 60, // 24 horas
+    maxAge: 24 * 60 * 60,
   },
   secret: env.NEXTAUTH_SECRET
 }

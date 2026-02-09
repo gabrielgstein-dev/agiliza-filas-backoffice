@@ -69,6 +69,7 @@ class IgniterClient {
   private requestQueue = new Map<string, Promise<unknown>>();
   private cache = new Map<string, CacheEntry>();
   private readonly DEFAULT_CACHE_TTL = 30 * 1000; // 30 segundos
+  private cleanupInterval: ReturnType<typeof setInterval> | null = null;
   
   // 📊 Métricas do cliente
   private metrics = {
@@ -82,9 +83,19 @@ class IgniterClient {
     this.baseURL = baseURL;
     
     // Limpeza automática de cache a cada 2 minutos
-    setInterval(() => {
+    this.cleanupInterval = setInterval(() => {
       this.cleanExpiredCache();
     }, 2 * 60 * 1000);
+  }
+
+  // Método para limpar recursos (útil para testes ou cleanup manual)
+  cleanup(): void {
+    if (this.cleanupInterval) {
+      clearInterval(this.cleanupInterval);
+      this.cleanupInterval = null;
+    }
+    this.cache.clear();
+    this.requestQueue.clear();
   }
 
   setToken(token: string) {

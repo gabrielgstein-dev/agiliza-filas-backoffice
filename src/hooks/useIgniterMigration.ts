@@ -4,9 +4,7 @@ import { useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import { 
   useIgniter as useIgniterZustand,
-  useIgniterConnection,
   useIgniterNotifications,
-  useIgniterQueue,
   useQueueUpdates as useQueueUpdatesZustand,
   useTicketChanges as useTicketChangesZustand,
   useIgniterStore
@@ -32,7 +30,7 @@ export function useIgniter() {
       return () => {};
     }
 
-    return store.connectToQueue(queueId, token);
+    return store.connectToQueue(queueId);
   };
 
   return {
