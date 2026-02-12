@@ -167,7 +167,9 @@ jobs:
       if: steps.version_check.outputs.should_deploy == 'true'
       run: |
         VERSION="${{ steps.version_check.outputs.version }}"
-        docker build -t us-docker.pkg.dev/$GCP_PROJECT_ID/agiliza-backoffice/agiliza-backoffice:$VERSION \
+        docker build \
+                     --build-arg NEXT_PUBLIC_API_URL=${{ vars.NEXT_PUBLIC_API_URL_PROD }} \
+                     -t us-docker.pkg.dev/$GCP_PROJECT_ID/agiliza-backoffice/agiliza-backoffice:$VERSION \
                      -t us-docker.pkg.dev/$GCP_PROJECT_ID/agiliza-backoffice/agiliza-backoffice:$GITHUB_SHA \
                      -t us-docker.pkg.dev/$GCP_PROJECT_ID/agiliza-backoffice/agiliza-backoffice:latest .
 
@@ -192,7 +194,7 @@ jobs:
           --cpu 2 \
           --min-instances 1 \
           --max-instances 20 \
-          --set-env-vars NODE_ENV=production,ENVIRONMENT=production,NEXT_TELEMETRY_DISABLED=1,NEXT_PUBLIC_API_URL=https://agiliza-api-nafwgg52oq-uc.a.run.app,NEXT_PUBLIC_WS_URL=wss://agiliza-api-nafwgg52oq-uc.a.run.app,NEXT_PUBLIC_APP_NAME="Agiliza Backoffice"
+          --set-env-vars NODE_ENV=production,ENVIRONMENT=production,NEXT_TELEMETRY_DISABLED=1,NEXT_PUBLIC_API_URL=${{ vars.NEXT_PUBLIC_API_URL_PROD }},NEXT_PUBLIC_WS_URL=${{ vars.NEXT_PUBLIC_WS_URL_PROD }},NEXT_PUBLIC_APP_NAME="${{ vars.NEXT_PUBLIC_APP_NAME_PROD }}",API_URL=${{ vars.NEXT_PUBLIC_API_URL_PROD }},NEXTAUTH_URL=${{ vars.NEXTAUTH_URL_PROD }},NEXTAUTH_SECRET=${{ secrets.NEXTAUTH_SECRET_PROD }}
 
     - name: Get service URL
       if: steps.version_check.outputs.should_deploy == 'true'
