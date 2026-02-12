@@ -194,7 +194,15 @@ jobs:
           --cpu 2 \
           --min-instances 1 \
           --max-instances 20 \
-          --set-env-vars NODE_ENV=production,ENVIRONMENT=production,NEXT_TELEMETRY_DISABLED=1,NEXT_PUBLIC_API_URL=${{ vars.NEXT_PUBLIC_API_URL_PROD }},NEXT_PUBLIC_WS_URL=${{ vars.NEXT_PUBLIC_WS_URL_PROD }},NEXT_PUBLIC_APP_NAME="${{ vars.NEXT_PUBLIC_APP_NAME_PROD }}",API_URL=${{ vars.NEXT_PUBLIC_API_URL_PROD }},NEXTAUTH_URL=${{ vars.NEXTAUTH_URL_PROD }},NEXTAUTH_SECRET=${{ secrets.NEXTAUTH_SECRET_PROD }}
+          --set-env-vars "NODE_ENV=production" \
+          --set-env-vars "ENVIRONMENT=production" \
+          --set-env-vars "NEXT_TELEMETRY_DISABLED=1" \
+          --set-env-vars "NEXT_PUBLIC_API_URL=${{ vars.NEXT_PUBLIC_API_URL_PROD }}" \
+          --set-env-vars "NEXT_PUBLIC_WS_URL=${{ vars.NEXT_PUBLIC_WS_URL_PROD }}" \
+          --set-env-vars "NEXT_PUBLIC_APP_NAME=${{ vars.NEXT_PUBLIC_APP_NAME_PROD }}" \
+          --set-env-vars "API_URL=${{ vars.NEXT_PUBLIC_API_URL_PROD }}" \
+          --set-env-vars "NEXTAUTH_URL=${{ vars.NEXTAUTH_URL_PROD }}" \
+          --set-env-vars "NEXTAUTH_SECRET=${{ secrets.NEXTAUTH_SECRET_PROD }}"
 
     - name: Get service URL
       if: steps.version_check.outputs.should_deploy == 'true'
