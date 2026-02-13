@@ -1,3 +1,13 @@
+// Log warning when using default values in production
+if (process.env.NODE_ENV === 'production') {
+  if (!process.env.NEXTAUTH_SECRET) {
+    console.error('🚨 NEXTAUTH_SECRET não está configurado em produção!')
+  }
+  if (!process.env.NEXTAUTH_URL) {
+    console.error('🚨 NEXTAUTH_URL não está configurado em produção!')
+  }
+}
+
 export const env = {
   API_URL: process.env.API_URL || process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api/v1',
   WS_URL: process.env.NEXT_PUBLIC_WS_URL || 'ws://localhost:3001',
@@ -9,3 +19,13 @@ export const env = {
   LOG_LEVEL: process.env.LOG_LEVEL || 'debug',
   ENABLE_NETWORK_LOGS: process.env.ENABLE_NETWORK_LOGS === 'true',
 } as const
+
+// Debug environment variables in development
+if (process.env.NODE_ENV === 'development') {
+  console.log('🔧 Environment variables:', {
+    NODE_ENV: env.NODE_ENV,
+    NEXTAUTH_URL: env.NEXTAUTH_URL,
+    NEXTAUTH_SECRET: env.NEXTAUTH_SECRET ? '***CONFIGURED***' : '***MISSING***',
+    API_URL: env.API_URL,
+  })
+}
