@@ -216,7 +216,13 @@ jobs:
             --set-env-vars "NEXT_PUBLIC_APP_NAME=${{ vars.NEXT_PUBLIC_APP_NAME_STAGE }}" \
             --set-env-vars "API_URL=${{ vars.NEXT_PUBLIC_API_URL_STAGE }}" \
             --set-env-vars "NEXTAUTH_URL=${{ vars.NEXTAUTH_URL_STAGE }}" \
-            --set-env-vars "NEXTAUTH_SECRET=${{ secrets.NEXTAUTH_SECRET_STAGE }}"
+            --set-env-vars "NEXTAUTH_SECRET=${{ secrets.NEXTAUTH_SECRET_STAGE }}" \
+            --set-env-vars "META_API_VERSION=${{ vars.META_API_VERSION_STAGE }}" \
+            --set-env-vars "META_PHONE_NUMBER_ID=${{ secrets.META_PHONE_NUMBER_ID_STAGE }}" \
+            --set-env-vars "META_ACCESS_TOKEN=${{ secrets.META_ACCESS_TOKEN_STAGE }}" \
+            --set-env-vars "META_WABA_ID=${{ secrets.META_WABA_ID_STAGE }}" \
+            --set-env-vars "META_APP_ID=${{ secrets.META_APP_ID_STAGE }}" \
+            --set-env-vars "WHATSAPP_TEMPLATE_LANGUAGE=${{ vars.WHATSAPP_TEMPLATE_LANGUAGE_STAGE }}"
 
       - name: Get service URL
         if: steps.version_check.outputs.should_deploy == 'true'
