@@ -11,7 +11,7 @@ import {
   Hash,
   type LucideIcon
 } from 'lucide-react'
-import { Ticket, TicketStatus, ServiceType } from '@/types'
+import { Ticket, TicketStatus } from '@/types'
 import { Tag } from './Tag'
 
 interface TicketDisplayProps {
@@ -23,25 +23,25 @@ export function TicketDisplay({ ticket, showQueueInfo = false }: TicketDisplayPr
   const getPasswordType = (token: string) => {
     const prefix = token.replace(/\d+$/, '')
     
-    const types: Record<string, { label: string; color: 'blue' | 'green' | 'amber' | 'red' | 'purple' | 'gray'; serviceType: ServiceType }> = {
-      'B': { label: 'Balcão', color: 'gray', serviceType: ServiceType.BALCAO },
-      'BP': { label: 'Balcão Prioritário', color: 'amber', serviceType: ServiceType.BALCAO },
-      'C': { label: 'Consulta', color: 'blue', serviceType: ServiceType.CONSULTA },
-      'CP': { label: 'Consulta Prioritária', color: 'blue', serviceType: ServiceType.CONSULTA },
-      'E': { label: 'Exames', color: 'green', serviceType: ServiceType.EXAMES },
-      'EP': { label: 'Exames Prioritários', color: 'green', serviceType: ServiceType.EXAMES },
-      'T': { label: 'Triagem', color: 'amber', serviceType: ServiceType.TRIAGEM },
-      'TP': { label: 'Triagem Prioritária', color: 'amber', serviceType: ServiceType.TRIAGEM },
-      'X': { label: 'Caixa', color: 'amber', serviceType: ServiceType.CAIXA },
-      'XP': { label: 'Caixa Prioritário', color: 'amber', serviceType: ServiceType.CAIXA },
-      'P': { label: 'Pediatria', color: 'purple', serviceType: ServiceType.PEDIATRIA },
-      'PP': { label: 'Pediatria Prioritária', color: 'purple', serviceType: ServiceType.PEDIATRIA },
-      'U': { label: 'Urgência', color: 'red', serviceType: ServiceType.URGENCIA },
-      'G': { label: 'Geral', color: 'gray', serviceType: ServiceType.GENERAL },
-      'GP': { label: 'Geral Prioritário', color: 'gray', serviceType: ServiceType.GENERAL },
+    const types: Record<string, { label: string; color: 'blue' | 'green' | 'amber' | 'red' | 'purple' | 'gray' }> = {
+      'B': { label: 'Balcão', color: 'gray' },
+      'BP': { label: 'Balcão Prioritário', color: 'amber' },
+      'C': { label: 'Consulta', color: 'blue' },
+      'CP': { label: 'Consulta Prioritária', color: 'blue' },
+      'E': { label: 'Exames', color: 'green' },
+      'EP': { label: 'Exames Prioritários', color: 'green' },
+      'T': { label: 'Triagem', color: 'amber' },
+      'TP': { label: 'Triagem Prioritária', color: 'amber' },
+      'X': { label: 'Caixa', color: 'amber' },
+      'XP': { label: 'Caixa Prioritário', color: 'amber' },
+      'P': { label: 'Pediatria', color: 'purple' },
+      'PP': { label: 'Pediatria Prioritária', color: 'purple' },
+      'U': { label: 'Urgência', color: 'red' },
+      'G': { label: 'Geral', color: 'gray' },
+      'GP': { label: 'Geral Prioritário', color: 'gray' },
     }
     
-    return types[prefix] || { label: 'Geral', color: 'gray', serviceType: ServiceType.GENERAL }
+    return types[prefix] || { label: 'Geral', color: 'gray' }
   }
 
   const getStatusInfo = (status: TicketStatus): { label: string; color: 'blue' | 'green' | 'amber' | 'red' | 'purple' | 'gray'; icon: LucideIcon } => {
@@ -163,25 +163,10 @@ export function TicketDisplay({ ticket, showQueueInfo = false }: TicketDisplayPr
           <p className="text-sm text-blue-600 dark:text-blue-400">
             <strong>Fila:</strong> {ticket.queue.name}
           </p>
-          {ticket.queue.toleranceMinutes && (
-            <p className="text-sm text-blue-600 dark:text-blue-400">
-              <strong>Tolerância:</strong> {ticket.queue.toleranceMinutes} minutos
-            </p>
-          )}
         </div>
       )}
 
       {/* Aviso de Tolerância para tickets chamados */}
-      {ticket.status === TicketStatus.CALLED && ticket.queue?.toleranceMinutes && (
-        <div className="mb-4 p-3 bg-orange-50 dark:bg-orange-900/20 rounded-xl border border-orange-200 dark:border-orange-800">
-          <div className="flex items-center space-x-2">
-            <AlertCircle className="w-4 h-4 text-orange-600 dark:text-orange-400" />
-            <p className="text-sm text-orange-700 dark:text-orange-300">
-              <strong>Atenção:</strong> Você tem <strong>{ticket.queue.toleranceMinutes} minutos</strong> para comparecer após ser chamado.
-            </p>
-          </div>
-        </div>
-      )}
 
       {/* Estatísticas do Ticket */}
       <div className="grid grid-cols-2 gap-4">

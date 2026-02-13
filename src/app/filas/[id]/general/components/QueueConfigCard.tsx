@@ -41,9 +41,9 @@ export function QueueConfigCard({ queue }: QueueConfigCardProps) {
 
           <div className="bg-slate-50 dark:bg-slate-700 rounded-xl p-4">
             <div className="flex items-center justify-between">
-              <span className="text-sm font-medium text-slate-700 dark:text-slate-300">Tolerância</span>
+              <span className="text-sm font-medium text-slate-700 dark:text-slate-300">Tipo</span>
               <span className="text-sm text-slate-600 dark:text-slate-400">
-                {queue.toleranceMinutes} min
+                {queue.queueType === 'GENERAL' ? 'Geral' : queue.queueType === 'PRIORITY' ? 'Prioritária' : 'VIP'}
               </span>
             </div>
           </div>

@@ -3,17 +3,11 @@ import {
   CheckCircle2,
   Clock,
   Users,
-  AlertCircle,
-  Stethoscope,
-  TestTube,
-  Building,
-  AlertTriangle,
-  DollarSign,
-  Baby,
-  Ambulance,
-  FileText
+  FileText,
+  Star,
+  Crown
 } from 'lucide-react'
-import { Queue, Ticket, ServiceType } from '@/types'
+import { Queue, QueueType, Ticket } from '@/types'
 
 interface QueueConfirmationProps {
   queue: Queue
@@ -21,28 +15,18 @@ interface QueueConfirmationProps {
 }
 
 export function QueueConfirmation({ queue, ticket }: QueueConfirmationProps) {
-  const getServiceTypeInfo = (serviceType: ServiceType) => {
-    switch (serviceType) {
-      case ServiceType.CONSULTA:
-        return { label: '🩺 Consulta Médica', icon: Stethoscope, color: 'blue' }
-      case ServiceType.EXAMES:
-        return { label: '🔬 Exames', icon: TestTube, color: 'green' }
-      case ServiceType.BALCAO:
-        return { label: '🏢 Balcão de Atendimento', icon: Building, color: 'gray' }
-      case ServiceType.TRIAGEM:
-        return { label: '🚨 Triagem', icon: AlertTriangle, color: 'orange' }
-      case ServiceType.CAIXA:
-        return { label: '💰 Caixa', icon: DollarSign, color: 'yellow' }
-      case ServiceType.PEDIATRIA:
-        return { label: '👶 Pediatria', icon: Baby, color: 'pink' }
-      case ServiceType.URGENCIA:
-        return { label: '🚑 Urgência', icon: Ambulance, color: 'red' }
+  const getQueueTypeInfo = (type: QueueType) => {
+    switch (type) {
+      case QueueType.PRIORITY:
+        return { label: 'Prioritária', icon: Star }
+      case QueueType.VIP:
+        return { label: 'VIP', icon: Crown }
       default:
-        return { label: '📋 Atendimento Geral', icon: FileText, color: 'gray' }
+        return { label: 'Geral', icon: FileText }
     }
   }
 
-  const serviceInfo = getServiceTypeInfo(queue.serviceType)
+  const queueTypeInfo = getQueueTypeInfo(queue.queueType)
 
   const formatEstimatedTime = (minutes?: number) => {
     if (!minutes) return 'calculando...'
@@ -79,9 +63,9 @@ export function QueueConfirmation({ queue, ticket }: QueueConfirmationProps) {
               </span>
             </div>
             <div className="flex items-center justify-center space-x-2">
-              <serviceInfo.icon className="w-5 h-5 text-slate-600 dark:text-slate-400" />
+              <queueTypeInfo.icon className="w-5 h-5 text-slate-600 dark:text-slate-400" />
               <span className="text-lg font-semibold text-slate-700 dark:text-slate-300">
-                {serviceInfo.label}
+                {queue.name} ({queueTypeInfo.label})
               </span>
             </div>
           </div>
@@ -120,20 +104,6 @@ export function QueueConfirmation({ queue, ticket }: QueueConfirmationProps) {
             </div>
           </div>
 
-          {/* Tolerance Notice */}
-          <div className="bg-orange-50 dark:bg-orange-900/20 rounded-2xl p-4 border border-orange-200 dark:border-orange-800">
-            <div className="flex items-start space-x-3">
-              <AlertCircle className="w-5 h-5 text-orange-600 dark:text-orange-400 mt-0.5 flex-shrink-0" />
-              <div>
-                <p className="text-sm font-medium text-orange-800 dark:text-orange-300 mb-1">
-                  ⏰ Importante:
-                </p>
-                <p className="text-sm text-orange-700 dark:text-orange-400">
-                  Após ser chamado, você tem <strong>{queue.toleranceMinutes} minutos</strong> para comparecer ao atendimento.
-                </p>
-              </div>
-            </div>
-          </div>
 
           {/* Instructions */}
           <div className="bg-slate-50 dark:bg-slate-700 rounded-2xl p-4 border border-slate-200 dark:border-slate-600">

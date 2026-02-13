@@ -6,16 +6,11 @@ import {
   Edit,
   Trash2,
   Eye,
-  Stethoscope,
-  TestTube,
-  Building,
-  AlertTriangle,
-  DollarSign,
-  Baby,
-  Ambulance,
-  FileText
+  FileText,
+  Star,
+  Crown
 } from 'lucide-react'
-import { Queue, QueueType, ServiceType } from '@/types'
+import { Queue, QueueType } from '@/types'
 import { Tag } from './Tag'
 
 interface QueueCardProps {
@@ -39,28 +34,18 @@ export function QueueCard({ queue, onView, onEdit, onDelete }: QueueCardProps) {
     }
   }
 
-  const getServiceTypeInfo = (serviceType: ServiceType) => {
-    switch (serviceType) {
-      case ServiceType.CONSULTA:
-        return { label: 'Consulta', icon: Stethoscope, color: 'blue', bgColor: 'from-blue-500 to-blue-600' }
-      case ServiceType.EXAMES:
-        return { label: 'Exames', icon: TestTube, color: 'green', bgColor: 'from-green-500 to-green-600' }
-      case ServiceType.BALCAO:
-        return { label: 'Balcão', icon: Building, color: 'gray', bgColor: 'from-gray-500 to-gray-600' }
-      case ServiceType.TRIAGEM:
-        return { label: 'Triagem', icon: AlertTriangle, color: 'amber', bgColor: 'from-orange-500 to-orange-600' }
-      case ServiceType.CAIXA:
-        return { label: 'Caixa', icon: DollarSign, color: 'amber', bgColor: 'from-yellow-500 to-yellow-600' }
-      case ServiceType.PEDIATRIA:
-        return { label: 'Pediatria', icon: Baby, color: 'purple', bgColor: 'from-pink-500 to-pink-600' }
-      case ServiceType.URGENCIA:
-        return { label: 'Urgência', icon: Ambulance, color: 'red', bgColor: 'from-red-500 to-red-600' }
+  const getQueueTypeInfo = (type: QueueType) => {
+    switch (type) {
+      case QueueType.PRIORITY:
+        return { icon: Star, bgColor: 'from-amber-500 to-amber-600' }
+      case QueueType.VIP:
+        return { icon: Crown, bgColor: 'from-purple-500 to-purple-600' }
       default:
-        return { label: 'Geral', icon: FileText, color: 'gray', bgColor: 'from-gray-500 to-gray-600' }
+        return { icon: FileText, bgColor: 'from-blue-500 to-blue-600' }
     }
   }
 
-  const serviceInfo = getServiceTypeInfo(queue.serviceType)
+  const queueInfo = getQueueTypeInfo(queue.queueType)
 
 
 
@@ -68,17 +53,14 @@ export function QueueCard({ queue, onView, onEdit, onDelete }: QueueCardProps) {
     <div className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-xl rounded-2xl shadow-xl border border-white/20 dark:border-slate-700/50 p-6 hover:shadow-2xl transition-all duration-200 group">
       <div className="flex items-start justify-between mb-4">
         <div className="flex items-center space-x-3">
-          <div className={`w-12 h-12 bg-gradient-to-br ${serviceInfo.bgColor} rounded-xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform`}>
-            <serviceInfo.icon className="w-6 h-6 text-white" />
+          <div className={`w-12 h-12 bg-gradient-to-br ${queueInfo.bgColor} rounded-xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform`}>
+            <queueInfo.icon className="w-6 h-6 text-white" />
           </div>
           <div>
             <h3 className="font-semibold text-slate-900 dark:text-white">
               {queue.name}
             </h3>
             <div className="flex items-center space-x-2">
-              <Tag variant={serviceInfo.color as 'blue' | 'green' | 'amber' | 'red' | 'purple' | 'gray'}>
-                {serviceInfo.label}
-              </Tag>
               <Tag variant={queue.queueType === QueueType.GENERAL ? 'blue' : queue.queueType === QueueType.PRIORITY ? 'amber' : 'purple'}>
                 {getQueueTypeLabel(queue.queueType)}
               </Tag>
@@ -121,14 +103,6 @@ export function QueueCard({ queue, onView, onEdit, onDelete }: QueueCardProps) {
                 Sem limite
               </Tag>
             )}
-          </span>
-        </div>
-        <div className="flex items-center justify-between">
-          <span className="text-sm text-slate-600 dark:text-slate-400">
-            Tolerância
-          </span>
-          <span className="text-sm font-medium text-slate-900 dark:text-white">
-            {queue.toleranceMinutes} min
           </span>
         </div>
         {queue.currentNumber && (

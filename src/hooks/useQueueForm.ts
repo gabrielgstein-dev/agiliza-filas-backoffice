@@ -5,7 +5,7 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { apiClient } from '@/lib/api'
-import { QueueType, ServiceType, NextAuthSession, CreateQueueDto } from '@/types'
+import { QueueType, NextAuthSession, CreateQueueDto } from '@/types'
 
 // Schema de validação
 const createQueueSchema = z.object({
@@ -18,17 +18,9 @@ const createQueueSchema = z.object({
   queueType: z.nativeEnum(QueueType, {
     errorMap: () => ({ message: 'Selecione um tipo de fila válido' })
   }),
-  serviceType: z.nativeEnum(ServiceType, {
-    errorMap: () => ({ message: 'Selecione um tipo de serviço válido' })
-  }),
-  toleranceMinutes: z.number()
-    .min(5, 'Tolerância deve ser pelo menos 5 minutos')
-    .max(120, 'Tolerância deve ser no máximo 120 minutos')
-    .default(30),
   hasCapacityLimit: z.boolean().default(false),
   capacity: z.number().optional()
 }).refine((data) => {
-  // Validar capacity apenas se hasCapacityLimit for true
   if (data.hasCapacityLimit) {
     if (!data.capacity) {
       return false;
@@ -57,8 +49,6 @@ export function useQueueForm() {
     resolver: zodResolver(createQueueSchema),
     defaultValues: {
       queueType: QueueType.GENERAL,
-      serviceType: ServiceType.GENERAL,
-      toleranceMinutes: 30,
       hasCapacityLimit: false,
     },
   })
@@ -98,8 +88,6 @@ export function useQueueForm() {
       name: cleanedData.name,
       description: cleanedData.description || undefined,
       queueType: cleanedData.queueType,
-      serviceType: cleanedData.serviceType,
-      toleranceMinutes: cleanedData.toleranceMinutes,
       ...(cleanedData.capacity && { capacity: cleanedData.capacity }),
     }
 

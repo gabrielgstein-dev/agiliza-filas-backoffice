@@ -16,11 +16,10 @@ import {
   FormField,
   FormSelect,
   FormTextarea,
-  ErrorMessage,
-  PasswordPreview
+  ErrorMessage
 } from '@/components/ui'
 import { useQueueForm } from '@/hooks/useQueueForm'
-import { QueueType, ServiceType, NextAuthSession } from '@/types'
+import { QueueType, NextAuthSession } from '@/types'
 
 export default function NewQueuePage() {
   const { status } = useSession() as { data: NextAuthSession | null, status: string }
@@ -38,13 +37,8 @@ export default function NewQueuePage() {
     setValue
   } = useQueueForm()
 
-  // Log dos erros de validação
-  console.log('🔍 Erros de validação:', errors)
 
-  // Watch para o checkbox de capacidade e campos para preview
   const hasCapacityLimit = watch('hasCapacityLimit')
-  const serviceType = watch('serviceType')
-  const queueType = watch('queueType')
 
   // Limpar o campo capacity quando o checkbox é desmarcado
   React.useEffect(() => {
@@ -160,35 +154,6 @@ export default function NewQueuePage() {
                 <option value={QueueType.VIP}>VIP</option>
               </FormSelect>
 
-              {/* Tipo de Serviço */}
-              <FormSelect
-                {...register('serviceType')}
-                id="serviceType"
-                label="Tipo de Serviço"
-                error={errors.serviceType}
-                required
-              >
-                <option value={ServiceType.GENERAL}>Geral</option>
-                <option value={ServiceType.CONSULTA}>Consulta Médica</option>
-                <option value={ServiceType.EXAMES}>Exames</option>
-                <option value={ServiceType.BALCAO}>Balcão de Atendimento</option>
-                <option value={ServiceType.TRIAGEM}>Triagem</option>
-                <option value={ServiceType.CAIXA}>Caixa/Financeiro</option>
-                <option value={ServiceType.PEDIATRIA}>Pediatria</option>
-                <option value={ServiceType.URGENCIA}>Urgência</option>
-              </FormSelect>
-
-              {/* Tolerância de Abandono */}
-              <FormField
-                {...register('toleranceMinutes', { valueAsNumber: true })}
-                id="toleranceMinutes"
-                type="number"
-                label="Tolerância para Abandono (minutos)"
-                placeholder="30"
-                error={errors.toleranceMinutes}
-                helperText="Tempo limite para marcar ticket como 'não compareceu' após ser chamado"
-                required
-              />
             </div>
 
             {/* Descrição */}
@@ -201,16 +166,6 @@ export default function NewQueuePage() {
               error={errors.description}
               helperText="Informações adicionais sobre a fila (opcional)"
             />
-
-            {/* Preview da Senha */}
-            {serviceType && queueType && (
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-slate-700 dark:text-slate-300">
-                  Preview do Tipo de Senha
-                </label>
-                <PasswordPreview serviceType={serviceType} queueType={queueType} />
-              </div>
-            )}
 
             {/* Checkbox para Limite de Capacidade */}
             <div className="flex items-center space-x-3 p-4 bg-slate-50 dark:bg-slate-700 rounded-xl border border-slate-200 dark:border-slate-600">

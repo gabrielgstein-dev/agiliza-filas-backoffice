@@ -4,16 +4,6 @@ export enum QueueType {
   VIP = 'VIP',
 }
 
-export enum ServiceType {
-  GENERAL = 'GENERAL',
-  CONSULTA = 'CONSULTA',
-  EXAMES = 'EXAMES',
-  BALCAO = 'BALCAO',
-  TRIAGEM = 'TRIAGEM',
-  CAIXA = 'CAIXA',
-  PEDIATRIA = 'PEDIATRIA',
-  URGENCIA = 'URGENCIA',
-}
 
 export enum TicketStatus {
   WAITING = 'WAITING',
@@ -54,8 +44,6 @@ export interface Queue {
   name: string;
   description?: string;
   queueType: QueueType;
-  serviceType: ServiceType;
-  toleranceMinutes: number;
   isActive: boolean;
   capacity: number | null;
   avgServiceTime: number;
@@ -173,7 +161,6 @@ export interface QueueStats {
     name: string;
     description: string;
     capacity: number;
-    toleranceMinutes: number;
     avgServiceTime: number;
     status: string;
   };
@@ -211,8 +198,6 @@ export interface CreateQueueDto {
   name: string;
   description?: string;
   queueType?: QueueType;
-  serviceType?: ServiceType;
-  toleranceMinutes?: number;
   capacity?: number;
 }
 

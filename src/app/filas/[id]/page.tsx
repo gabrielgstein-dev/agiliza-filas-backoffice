@@ -9,7 +9,7 @@ import {
 import { useRealtimeQueueStats } from '@/hooks/useRealtimeQueue'
 import { useTicketStream } from '@/hooks/useTicketStream'
 import { apiClient } from '@/lib/api'
-import { NextAuthSession, Queue, QueueStats, ServiceType, Ticket } from '@/types'
+import { NextAuthSession, Queue, QueueType, QueueStats, Ticket } from '@/types'
 import {
     ArrowLeft,
     BarChart3,
@@ -194,28 +194,18 @@ export default function QueueDetailsPage() {
     }
   }
 
-  const getServiceTypeInfo = (serviceType: ServiceType) => {
-    switch (serviceType) {
-      case ServiceType.CONSULTA:
-        return { label: 'Consulta Médica', color: 'blue' }
-      case ServiceType.EXAMES:
-        return { label: 'Exames', color: 'green' }
-      case ServiceType.BALCAO:
-        return { label: 'Balcão', color: 'gray' }
-      case ServiceType.TRIAGEM:
-        return { label: 'Triagem', color: 'amber' }
-      case ServiceType.CAIXA:
-        return { label: 'Caixa', color: 'amber' }
-      case ServiceType.PEDIATRIA:
-        return { label: 'Pediatria', color: 'purple' }
-      case ServiceType.URGENCIA:
-        return { label: 'Urgência', color: 'red' }
+  const getQueueTypeLabel = (type: QueueType) => {
+    switch (type) {
+      case QueueType.PRIORITY:
+        return { label: 'Prioritária', color: 'amber' }
+      case QueueType.VIP:
+        return { label: 'VIP', color: 'purple' }
       default:
-        return { label: 'Geral', color: 'gray' }
+        return { label: 'Geral', color: 'blue' }
     }
   }
 
-  const serviceInfo = getServiceTypeInfo(queue.serviceType)
+  const queueTypeInfo = getQueueTypeLabel(queue.queueType)
 
   return (
     <>
@@ -250,8 +240,8 @@ export default function QueueDetailsPage() {
                     {queue.name}
                   </h1>
                   <div className="flex items-center space-x-2 mt-1">
-                    <Tag variant={serviceInfo.color as 'blue' | 'green' | 'amber' | 'red' | 'purple' | 'gray'}>
-                      {serviceInfo.label}
+                    <Tag variant={queueTypeInfo.color as 'blue' | 'green' | 'amber' | 'red' | 'purple' | 'gray'}>
+                      {queueTypeInfo.label}
                     </Tag>
                     <Tag variant={queue.isActive ? 'green' : 'red'}>
                       {queue.isActive ? 'Ativa' : 'Inativa'}
